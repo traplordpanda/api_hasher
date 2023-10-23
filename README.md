@@ -1,6 +1,6 @@
 # api_hasher
 
-Designed to quickly be able to easlily a hashing algorithm for win32 api resolution
+to quickly be able to test out hashing algorithms for win32 api resolution
 See examples for usage.
 
 ## Installation
@@ -20,8 +20,15 @@ import hash_functions;
 int main() {
 	// decide which hash function we want to use
 	constexpr auto hf = hash_functions::fnva1;
+
+	// compile time hash string
+	// fnva1 MessageBoxA == 0x23a979e4
 	constexpr auto msgboxhash = hf("MessageBoxA");
+	
+	// intialize hashing object	
 	auto fh = functionResolver{ "user32.dll", hf};
+
+	// perform lookup for hash 0x23a979e4
 	auto mbox_address = fh.resolve_function_hash(msgboxhash);
 	std::cout << "\nMessageBoxA hash : 0x" << std::hex << msgboxhash << '\n';
 	if (not mbox_address) {

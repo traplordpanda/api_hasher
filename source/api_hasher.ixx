@@ -9,6 +9,9 @@ module;
 
 export module api_hash;
 
+// todo : add support for variable arguments i.e. "kernel32.dll", "user32.dll"
+// add optional arg to keep only specific hashes in the table
+
 template <typename F>
 concept HashFunction = requires(F func, std::string_view str) {
     { func(str) } -> std::same_as<std::uint32_t>;
