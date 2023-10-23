@@ -5,6 +5,7 @@ module;
 #include <iostream>
 #include <string>
 #include <Windows.h>
+#include <any>
 
 export module api_hash;
 
@@ -92,6 +93,9 @@ private:
     }
 };
 
+
+// simple wrapper class to define a function prototype and make it callable using a function address
+// not really safe because it takes in a raw pointer so it is on the caller 
 export template<typename return_type, typename... Args>
 class functionPointerWrap {
     // Internal type definitions for clarity
@@ -99,13 +103,13 @@ class functionPointerWrap {
     using function_pointer_type = return_type(*)(Args...);
     using function_object = std::function<function_type>;
     
-    // private ionno 
+    // private ionno
     function_object callable;
 
 public:
     // Constructor accepting a raw function pointer and wraps it
     functionPointerWrap(void* raw_func_pointer)
-        : callable(reinterpret_cast<function_pointer_type>(raw_func_pointer)) {}
+	   : callable(reinterpret_cast<function_pointer_type>(raw_func_pointer)) {}
 
     // () operator overload to allow objects of this class to be called as functions
     return_type operator()(Args... args) {
