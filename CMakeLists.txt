@@ -32,9 +32,10 @@ target_sources(api_hash
   PUBLIC
     FILE_SET CXX_MODULES FILES
      ${CMAKE_CURRENT_LIST_DIR}/source/api_hasher.ixx
-	 "source/hash_functions.ixx"
+	 ${CMAKE_CURRENT_LIST_DIR}/source/hash_functions.ixx
 )
+
 #target_link_libraries(filehash PRIVATE ${Boost_LIBRARIES})
 
-add_executable(main ${CMAKE_CURRENT_LIST_DIR}/source/main.cpp) 
+add_executable(main "examples/main.cpp") 
 target_link_libraries(main PRIVATE api_hash) 
