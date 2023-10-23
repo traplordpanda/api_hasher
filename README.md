@@ -42,7 +42,7 @@ int main() {
 
 Debug statements
 
-![resources/example.png](resources/example.png)
+![resources/example.png](resources/example1.png)
 
 No MessageBoxA import from example
 
