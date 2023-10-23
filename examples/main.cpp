@@ -6,9 +6,6 @@ import hash_functions;
 #include <functional>
 #include <iostream>
 
-using custom_message_box = std::function<int(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)>;
-using msgbox_sig = int(*)(HWND, LPCSTR, LPCSTR, UINT);
-
 int main() {
 	// decide which hash function we want to use
 	constexpr auto hf = hash_functions::fnva1;
@@ -21,8 +18,12 @@ int main() {
 		return 0;
 	}
 	std::cout << "\nmessage box address found : 0x" << std::hex << mbox_address << '\n';
-
-	custom_message_box cmboxa = reinterpret_cast<msgbox_sig>(mbox_address);
-	cmboxa(nullptr, "Hello World!", "Hashed api call!", MB_OK);
+	
+	// convenience class to wrap a function pointer
+	// templated to function signature <return type, params...>
+	// messageboxa would  be equivilant to functionPointerWrap<int, HWND, LPCSTR, LPCSTR, UINT>(mbox_address);
+	using custom_messageboxa = functionPointerWrap<int, HWND, LPCSTR, LPCSTR, UINT>;
+    custom_messageboxa wrappedFunction(mbox_address);
+    wrappedFunction(nullptr, "Hello World!", "Hashed api call!", MB_OK);
 	return 0;
 }

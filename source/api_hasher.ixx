@@ -91,3 +91,30 @@ private:
 		std::cout << "Total Number of APIs hashed : " << std::dec << function_table.bucket_count() << '\n';
     }
 };
+
+export template<typename return_type, typename... Args>
+class functionPointerWrap {
+    // Internal type definitions for clarity
+    using function_type = return_type(Args...);
+    using function_pointer_type = return_type(*)(Args...);
+    using function_object = std::function<function_type>;
+    
+    // private ionno 
+    function_object callable;
+
+public:
+    // Constructor accepting a raw function pointer and wraps it
+    functionPointerWrap(void* raw_func_pointer)
+        : callable(reinterpret_cast<function_pointer_type>(raw_func_pointer)) {}
+
+    // () operator overload to allow objects of this class to be called as functions
+    return_type operator()(Args... args) {
+        return callable(std::forward<Args>(args)...);
+    }
+    
+    // convert to std::function if needed
+    operator function_object() const {
+        return callable;
+    }
+};
+
