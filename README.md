@@ -33,9 +33,9 @@ int main() {
               << " found at address : " << mbox_address << '\n';
     
     // convenience method to wrap a function pointer
-    // templated to function signature <return type, params...>
+    // templated to function signature <return type>(api_hash, params...)
     // messageboxa would  be equivilant to
-    // functionResolver::call_hashed_function<int, HWND, LPCSTR, LPCSTR, UINT>(mbox_address);
+    // functionResolver::call_hashed_function<int>(api_hash, HWND, LPCSTR, LPCSTR, UINT);
     fh.call_hashed_function<int>(msgboxhash, nullptr, "hello world", "hashed api call!", MB_OK);
     return 0;
 }
