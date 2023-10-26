@@ -1,2 +1,5 @@
 .vs
 build
+out
+venv
+.venv
