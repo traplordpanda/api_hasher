@@ -41,6 +41,10 @@ int main() {
 }
 ```
 
+We can see the compile time string function in binja decomp.
+
+![resources/hashed_api.png](resources/hashed_api.png)
+
 Debug statements
 
 ![resources/example.png](resources/example1.png)
