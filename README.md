@@ -75,7 +75,9 @@ hashing algorithms are exported in hash_function module.
 }
 ```
 
-We can see the compile time string function in binja decomp.
+![resources/hashed_ex.png](resources/hashed_ex.png)
+
+We can see the compile time hashed string in binja decomp.
 
 ![resources/hashed_api.png](resources/hashed_api.png)
 

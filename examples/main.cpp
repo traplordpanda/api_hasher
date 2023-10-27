@@ -6,6 +6,7 @@ import hash_functions;
 #include <format>
 #include <iostream>
 #include <stdio.h>
+#include <bit>
 
 int main() {
     // decide which hash function we want to use
@@ -23,8 +24,9 @@ int main() {
 
     // lookup method if you need raw function pointer
     // look up for hash 0x23a979e4
-    // auto mbox_address = fh.resolve_function_hash(msgboxhash);
-    std::cout << std::format("\nhash : {:x} found at address {:x}\n", msgboxhash, msgboxhash);
+    auto mbox_address = fh.resolve_function_hash(msgboxhash);
+    auto mboxadd_print = std::bit_cast<std::uint64_t>(mbox_address);
+    std::cout << std::format("\nhash : {:x} found at address {:x}\n", msgboxhash, mboxadd_print);
 
     // convenience method using functionPointerWrap class to wrap a function pointer
     // templated to function signature <return type>(api_hash, params...)
