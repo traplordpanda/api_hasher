@@ -15,7 +15,7 @@ module;
 
 export module api_hash;
 
-constexpr bool debug = false;
+export constexpr bool debug = false;
 /**
  * @class libraryBase
  * @brief Helper class to convert relative virtual addresses (RVA) to virtual addresses (VA).
@@ -103,31 +103,32 @@ class functionResolver {
     hash_function hf;
 
   public:
-    static constexpr DWORD get_hash_from_string(std::string_view str) {
-        DWORD hash = 0x35;
-        for (char ch : str) {
-            hash += (hash * 0xab10f29f + static_cast<unsigned char>(ch)) & 0xffffff;
-        }
-        return hash;
-    }
     [[nodiscard]] auto get_function_table() const -> const std::unordered_map<DWORD, PDWORD> & {
         return function_table;
     }
-
-    explicit functionResolver(std::string_view library, hash_function hf) : hf(hf) {
-        libbase = LoadLibraryA(library.data());
-        if (not libbase) {
-            throw std::runtime_error("Failed to load library");
-        }
+    
+    template<typename... Libs>
+    explicit functionResolver(hash_function hf, Libs... libraries) : hf(hf) {
         function_table.reserve(1024);
-        populate_function_hashes();
+
+        // lambda to handle parameter pack expansion
+        auto loadlib = [this](std::string_view lib) {
+			this->libbase = LoadLibraryA(lib.data());
+            if constexpr (debug)
+            {
+			if (not libbase) {
+				throw std::runtime_error("Failed to load library");
+			}
+				std::cout << "Loading library : " << lib << '\n';   
+            }
+	    this->populate_function_hashes();
+        FreeLibrary(libbase);
+		};
+        // paramter pack expansion
+		(loadlib(libraries), ...);
     }
 
-    ~functionResolver() {
-        if (libbase) {
-            FreeLibrary(libbase);
-        }
-    }
+    ~functionResolver() = default;
 
     [[nodiscard]] PDWORD resolve_function_hash(DWORD hash) const {
         auto iter = function_table.find(hash);

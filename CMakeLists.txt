@@ -40,16 +40,8 @@ if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX")
 else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+  message(WARNING "THIS IS A MSVC ONLY PROJECT")
 endif()
-
-find_package(Python
-  REQUIRED COMPONENTS Interpreter Development.Module
-  OPTIONAL_COMPONENTS Development.SABIModule
-)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanobind)
-find_package(nanobind REQUIRED)
 
 add_library(api_hash)
 target_sources(api_hash
@@ -64,11 +56,41 @@ target_sources(api_hash
 add_executable(main "examples/main.cpp") 
 target_link_libraries(main PRIVATE api_hash) 
 
-nanobind_add_module(
-  api_hash_ext 
-  STABLE_ABI
-  NB_STATIC
-  ${CMAKE_CURRENT_LIST_DIR}/src/api_hash_ext.cpp
-)
-target_link_libraries(api_hash_ext PRIVATE api_hash)
-install(TARGETS api_hash_ext LIBRARY DESTINATION api_hash)
+# Warn if the user invokes CMake directly
+if (SKBUILD)
+	message(WARNING "\
+	This CMake file is meant to be executed using 'scikit-build-core'.
+	Running it directly will almost certainly not produce the desired
+	result. If you are a user trying to install this package, use the
+	command below, which will install all necessary build dependencies,
+	compile the package in an isolated environment, and then install it.
+	=====================================================================
+	$ pip install .
+	=====================================================================
+	If you are a software developer, and this is your own package, then
+	it is usually much more efficient to install the build dependencies
+	in your environment once and use the following command that avoids
+	a costly creation of a new virtual environment at every compilation:
+	=====================================================================
+	$ pip install nanobind scikit-build-core[pyproject]
+	$ pip install --no-build-isolation -ve .
+	=====================================================================
+	You may optionally add -Ceditable.rebuild=true to auto-rebuild when
+	the package is imported. Otherwise, you need to rerun the above
+	after editing C++ files.")
+	find_package(Python
+	REQUIRED COMPONENTS Interpreter Development.Module
+	OPTIONAL_COMPONENTS Development.SABIModule
+	)
+
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanobind)
+	find_package(nanobind REQUIRED)
+	  nanobind_add_module(
+	  api_hash_ext 
+	  STABLE_ABI
+	  NB_STATIC
+	  ${CMAKE_CURRENT_LIST_DIR}/src/api_hash_ext.cpp
+	)
+	target_link_libraries(api_hash_ext PRIVATE api_hash)
+	install(TARGETS api_hash_ext LIBRARY DESTINATION api_hash)
+endif()

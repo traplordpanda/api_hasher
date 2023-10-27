@@ -16,7 +16,7 @@ int message_box(std::string_view box_name, std::string_view box_message) {
     // decide which hash function to use
     constexpr auto hf = hash_functions::fnva1;
     constexpr auto msgboxhash = hf("MessageBoxA");
-    auto fh = functionResolver{"user32.dll", hf};
+    auto fh = functionResolver{hf, "user32.dll"};
     auto mbox_address = fh.resolve_function_hash(msgboxhash);
     std::cout << "MessageBoxA hash : 0x" << std::hex << msgboxhash << '\n';
     if (not mbox_address) {
@@ -38,7 +38,7 @@ template <typename ReturnType, typename... Args>
 ReturnType call_hashed_function(std::string_view library, std::uint32_t api_hash, Args... args) {
     // Decide which hash function to use (assuming you've the hash_functions namespace defined)
     constexpr auto hf = hash_functions::fnva1;
-    auto fh = functionResolver{library, hf};
+    auto fh = functionResolver{hf, library};
     auto func_address = fh.resolve_function_hash(api_hash);
 
     if (not func_address) {
@@ -68,14 +68,14 @@ int generic_api2(std::string_view library_name, std::uint32_t api_hash, nb::args
 }
 std::unordered_map<DWORD, PDWORD> get_fnva1_hashes(std::string_view library) {
     constexpr auto hf = hash_functions::fnva1;
-    auto fh = functionResolver{library, hf};
+    auto fh = functionResolver{hf, library};
     return fh.get_function_table();
 }
 
 using hf = std::function<std::uint32_t(std::string_view)>;
 NB_MODULE(api_hash_ext, m) {
     nb::class_<functionResolver<hf>>(m, "apiHasher")
-        .def(nb::init<const std::string &, hf>())
+        .def(nb::init<hf, const std::string &>())
         .def("get_values", &functionResolver<hf>::resolve_function_hash);
     m.def("message_box", &message_box);
     m.def("generic_api", &generic_api2);
