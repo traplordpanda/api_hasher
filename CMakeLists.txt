@@ -43,7 +43,6 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 add_executable(testing_api_hash "tests/test_api_hash.cpp")
-find_package(GTest CONFIG REQUIRED)
 target_link_libraries(testing_api_hash PRIVATE api_hash GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 add_test(testingapihash testing_api_hash)
 
