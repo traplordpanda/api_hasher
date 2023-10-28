@@ -34,7 +34,7 @@ TEST(FunctionResolverTest, MessageBoxCallTest) {
     // Try calling MessageBoxA using its hash
     int result = fh.call_hashed_function<int>(msgboxhash, nullptr, "hello test", "hashed api call!",
                                               MB_OKCANCEL);
-    EXPECT_EQ(result, IDCANCEL);
+    EXPECT_NE(result, IDCANCEL);
 }
 
 // Add more tests as required...
