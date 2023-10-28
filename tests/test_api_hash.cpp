@@ -20,6 +20,7 @@ TEST(FunctionResolverTest, GetComputerNametest) {
     DWORD size = MAX_COMPUTERNAME_LENGTH + 1;
 	auto result = fh.call_hashed_function<bool>(cname_hash, cname, &size);
     EXPECT_EQ(result, true);
+	std::cout << "Computer name: " << cname << "\n";
 }
 
 int main(int argc, char **argv) {
