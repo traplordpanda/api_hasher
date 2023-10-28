@@ -33,7 +33,7 @@ target_link_libraries(main PRIVATE api_hash)
 
  
 enable_testing()
-
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest)
 add_executable(testing_api_hash "tests/test_api_hash.cpp")
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(testing_api_hash PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
