@@ -33,7 +33,15 @@ target_link_libraries(main PRIVATE api_hash)
 
  
 enable_testing()
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest)
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG v1.14.0
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 add_executable(testing_api_hash "tests/test_api_hash.cpp")
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(testing_api_hash PRIVATE api_hash GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
