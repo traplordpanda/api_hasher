@@ -2,7 +2,8 @@ module;
 
 /**
  * @file api_hash.cpp
- * @brief Contains classes and functionalities for API hashing and function resolution.
+ * @brief Contains classes and functionalities for API hashing and function
+ * resolution.
  */
 
 #include <Windows.h>
@@ -14,11 +15,16 @@ module;
 #include <unordered_map>
 
 export module api_hash;
-
+#if defined _DEBUG
+export constexpr bool debug = true;
+#else
 export constexpr bool debug = false;
+#endif
+
 /**
  * @class libraryBase
- * @brief Helper class to convert relative virtual addresses (RVA) to virtual addresses (VA).
+ * @brief Helper class to convert relative virtual addresses (RVA) to virtual
+ * addresses (VA).
  */
 class libraryBase {
   private:
@@ -37,20 +43,24 @@ class libraryBase {
      * @param rva The relative virtual address.
      * @return VA of type T.
      */
-    template <typename T> T RVAtoVA(DWORD rva) const { return reinterpret_cast<T>(base + rva); }
+    template <typename T> T RVAtoVA(DWORD rva) const {
+        return reinterpret_cast<T>(base + rva);
+    }
 
     // Implicit conversion to uintptr_t
     operator uintptr_t() const { return base; }
 };
 
-// simple wrapper class to define a function prototype and make it callable using a function address
-// not really safe because it takes in a raw pointer so it is on the caller
+// simple wrapper class to define a function prototype and make it callable
+// using a function address not really safe because it takes in a raw pointer
+// so it is on the caller
 
 /**
  * @class functionPointerWrap
  * @brief Wraps a function pointer to make it callable.
  */
-export template <typename return_type, typename... Args> class functionPointerWrap {
+export template <typename return_type, typename... Args>
+class functionPointerWrap {
     // Internal type definitions for clarity
     using function_type = return_type(Args...);
     using function_pointer_type = return_type (*)(Args...);
@@ -62,10 +72,14 @@ export template <typename return_type, typename... Args> class functionPointerWr
   public:
     // Constructor accepting a raw function pointer and wraps it
     functionPointerWrap(void *raw_func_pointer)
-        : callable(reinterpret_cast<function_pointer_type>(raw_func_pointer)) {}
+        : callable(reinterpret_cast<function_pointer_type>(raw_func_pointer)) {
+    }
 
-    // () operator overload to allow objects of this class to be called as functions
-    return_type operator()(Args... args) { return callable(std::forward<Args>(args)...); }
+    // () operator overload to allow objects of this class to be called as
+    // functions
+    return_type operator()(Args... args) {
+        return callable(std::forward<Args>(args)...);
+    }
 
     // convert to std::function if needed
     operator function_object() const { return callable; }
@@ -80,12 +94,12 @@ concept HashFunction = requires(F func, std::string_view str) {
 };
 
 /**
- * @class functionResolver
+ * @class ApiHasher
  * @brief Resolves function addresses using their hash values.
  */
 export template <typename hash_function>
     requires HashFunction<hash_function>
-class functionResolver {
+class ApiHasher {
   private:
     std::unordered_map<DWORD, PDWORD> function_table;
     HMODULE libbase;
@@ -100,16 +114,19 @@ class functionResolver {
         }
         return true;
     }
+
     hash_function hf;
 
   public:
-    [[nodiscard]] auto get_function_table() const -> const std::unordered_map<DWORD, PDWORD> & {
-        return function_table;
-    }
-
+    /**
+     * @brief Constructs a new ApiHasher object.
+     * @param hf The hash function to use.
+     * @param libraries The libraries to load.
+     */
     template <typename... Libs>
-    explicit functionResolver(hash_function hf, Libs... libraries) : hf(hf) {
-        function_table.reserve(1024);
+    explicit ApiHasher(hash_function hf, Libs... libraries)
+        : hf(hf) {
+        function_table.reserve(1024 * sizeof...(libraries));
 
         // lambda to handle parameter pack expansion
         auto loadlib = [this](std::string_view lib) {
@@ -127,8 +144,32 @@ class functionResolver {
         (loadlib(libraries), ...);
     }
 
-    ~functionResolver() = default;
+    template <typename... Libs> void add_libarary(Libs... libs) {
+        function_table.reserve(1024);
 
+        // lambda to handle parameter pack expansion
+        auto loadlib = [this](std::string_view lib) {
+            this->libbase = LoadLibraryA(lib.data());
+            if constexpr (debug) {
+                if (not libbase) {
+                    throw std::runtime_error("Failed to load library");
+                }
+                std::cout << "Loading library : " << lib << '\n';
+            }
+            this->populate_function_hashes();
+            FreeLibrary(libbase);
+        };
+        // paramter pack expansion
+        (loadlib(libs), ...);
+    }
+    [[nodiscard]] constexpr auto call_hf(std::string_view str) const {
+        return hf(str);
+    }
+
+    [[nodiscard]] auto get_function_table() const
+        -> const std::unordered_map<DWORD, PDWORD> & {
+        return function_table;
+    }
     [[nodiscard]] PDWORD resolve_function_hash(DWORD hash) const {
         auto iter = function_table.find(hash);
         if (iter != function_table.end()) {
@@ -164,13 +205,19 @@ class functionResolver {
         if (not dos_header) {
             throw std::runtime_error("Invalid DOS header");
         }
-        auto nt_headers = lib_base.RVAtoVA<PIMAGE_NT_HEADERS>(dos_header->e_lfanew);
+        auto nt_headers = lib_base.RVAtoVA<PIMAGE_NT_HEADERS>(
+            static_cast<DWORD>(dos_header->e_lfanew));
         auto export_directory = lib_base.RVAtoVA<PIMAGE_EXPORT_DIRECTORY>(
-            nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+            nt_headers->OptionalHeader
+                .DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT]
+                .VirtualAddress);
 
-        auto functions_rva = lib_base.RVAtoVA<PDWORD>(export_directory->AddressOfFunctions);
-        auto names_rva = lib_base.RVAtoVA<PDWORD>(export_directory->AddressOfNames);
-        auto ordinals_rva = lib_base.RVAtoVA<PWORD>(export_directory->AddressOfNameOrdinals);
+        auto functions_rva =
+            lib_base.RVAtoVA<PDWORD>(export_directory->AddressOfFunctions);
+        auto names_rva =
+            lib_base.RVAtoVA<PDWORD>(export_directory->AddressOfNames);
+        auto ordinals_rva =
+            lib_base.RVAtoVA<PWORD>(export_directory->AddressOfNameOrdinals);
 
         for (DWORD i = 0; i < export_directory->NumberOfFunctions; i++) {
             auto function_name = lib_base.RVAtoVA<const char *>(names_rva[i]);
@@ -179,11 +226,14 @@ class functionResolver {
 
             DWORD function_hash = hf(function_name);
 
-            auto function_addr = lib_base.RVAtoVA<PDWORD>(functions_rva[ordinals_rva[i]]);
+            auto function_addr =
+                lib_base.RVAtoVA<PDWORD>(functions_rva[ordinals_rva[i]]);
             if constexpr (debug) {
                 // output for educational purposes
-                std::cout << function_name << std::hex << "\thashed string : 0x" << function_hash
-                          << "\tresolved address : 0x" << function_addr << '\n';
+                std::cout << function_name << std::hex
+                          << "\thashed string : 0x" << function_hash
+                          << "\tresolved address : 0x" << function_addr
+                          << '\n';
             }
             // Store the function address with its hash
             function_table[function_hash] = function_addr;

@@ -12,8 +12,43 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(Boost_DEBUG ON)
 
 if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX")
+	set(
+	common_compile_options
+	/utf-8
+	/permissive-
+	/volatile:iso
+	/Zc:__cplusplus
+	/Zc:inline
+	/Zc:enumTypes
+	/Zc:externConstexpr
+	/Zc:lambda
+	/Zc:preprocessor
+	/Zc:throwingNew
+	/diagnostics:caret
+	/W4
+	/WX
+	/w44062
+	/w44165
+	/w44242
+	/w44254
+	/w44263
+	/w44264
+	/w44265
+	/w44287
+	/w44296
+	/w44355
+	/w44365
+	/w44388
+	/w44577
+	/w44623
+	/we4774
+	/we4777
+	/w44800
+	/w44826
+	/we4905
+	/we4906
+	/w45204
+	)
 else()
   message(WARNING "THIS IS A MSVC ONLY PROJECT")
 endif()
@@ -25,12 +60,12 @@ target_sources(api_hash
      ${CMAKE_CURRENT_LIST_DIR}/src/api_hasher.ixx
 	 ${CMAKE_CURRENT_LIST_DIR}/src/hash_functions.ixx
 )
+target_compile_options(api_hash PRIVATE ${common_compile_options})
 
-#target_link_libraries(filehash PRIVATE ${Boost_LIBRARIES})
 
 add_executable(main "examples/main.cpp") 
 target_link_libraries(main PRIVATE api_hash) 
-
+target_compile_options(main PRIVATE ${common_compile_options})
  
 enable_testing()
 include(FetchContent)
@@ -44,6 +79,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 add_executable(testing_api_hash "tests/test_api_hash.cpp")
 target_link_libraries(testing_api_hash PRIVATE api_hash GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+target_compile_options(testing_api_hash PRIVATE ${common_compile_options})
 add_test(testingapihash testing_api_hash)
 
 # Warn if the user invokes CMake directly

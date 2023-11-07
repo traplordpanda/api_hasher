@@ -5,7 +5,7 @@ import api_hash;
 #include <Windows.h>
 #include <compare>
 
-// Simple test to ensure that the functionResolver can call a known function using its hash
+// Simple test to ensure that the ApiHasher can call a known function using its hash
 TEST(FunctionResolverTest, GetComputerNametest) {
     // Decide which hash function to use
     constexpr auto hf = hash_functions::fnva1;
@@ -13,7 +13,7 @@ TEST(FunctionResolverTest, GetComputerNametest) {
     // compile-time hash function no string stored
     constexpr auto cname_hash = hf("GetComputerNameA");
     EXPECT_EQ(cname_hash, 0x446eaa3c); 
-    auto fh = functionResolver{hf, "kernel32.dll"};
+    auto fh = ApiHasher{hf, "kernel32.dll"};
     auto cname_address = fh.resolve_function_hash(cname_hash);
     EXPECT_NE(cname_address, nullptr);
     char cname[MAX_COMPUTERNAME_LENGTH + 1];

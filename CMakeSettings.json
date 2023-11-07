@@ -11,7 +11,9 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "cmakeToolchain": "C:/Users/622807/source/vcpkg/scripts/buildsystems/vcpkg.cmake",
-      "cmakeExecutable": "C:/Program Files/CMake/bin/cmake.exe"
+      "cmakeExecutable": "C:/Program Files/CMake/bin/cmake.exe",
+      "enableMicrosoftCodeAnalysis": true,
+      "enableClangTidyCodeAnalysis": true
     },
     {
       "name": "x64-Release",
@@ -25,7 +27,9 @@
       "cmakeToolchain": "C:/Users/622807/source/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "variables": [],
-      "cmakeExecutable": "C:/Program Files/CMake/bin/cmake.exe"
+      "cmakeExecutable": "C:/Program Files/CMake/bin/cmake.exe",
+      "enableMicrosoftCodeAnalysis": true,
+      "enableClangTidyCodeAnalysis": true
     }
   ]
 }
